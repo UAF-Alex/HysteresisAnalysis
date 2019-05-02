@@ -1,0 +1,31 @@
+---
+title: "01_hyst"
+author: "Alex Webster"
+date: "5/2/2019"
+output: html_document
+---
+
+Resources for translating Python into R:
+https://rstudio.github.io/reticulate/articles/r_markdown.html
+
+```{r setup, include=F}
+library(reticulate)
+Sys.which("python")
+use_python("/usr/bin/python")
+```
+
+```{python}
+import numpy as np
+my_python_array = np.array([2,4,6,8])
+for item in my_python_array:print(item)
+```
+
+```{r}
+my_r_vector <- as.vector(py$my_python_array)
+class(my_r_vector)
+```
+
+```{python}
+my_python_array2 = r.my_r_vector
+print(my_python_array2)
+```
