@@ -5,17 +5,91 @@ date: "5/2/2019"
 output: html_document
 ---
 
-```{python}
-install 
+```{r setup, include=F}
+library(reticulate)
+Sys.which("python")
+use_python("/usr/bin/python")
 ```
 
+```{python}
+import pickle
+import pandas
+from hysteresis_metrics import hysteresisMetrics
+quit()
+```
+
+```{python}
+SonadoraDischargeFile = open('SonadoraDischarge9.p', 'rb')
+SonadoraSPFile = open('SonadoraSpecificConductance9.p', 'rb')
+SonadoraTurbidityFile = open('SonadoraTurbidity9.p', 'rb')
+SonadoraDischarge = pickle.load(SonadoraDischargeFile)
+SonadoraSP = pickle.load(SonadoraSPFile)
+SonadoraTurbidity = pickle.load(SonadoraTurbidityFile)
+
+SonadoraDischarge = SonadoraDischarge.drop(columns=['censorcodecv_id', 'qualitycodecv_id'])
+SonadoraSP = SonadoraSP.drop(columns=['censorcodecv_id', 'qualitycodecv_id'])
+SonadoraTurbidity = SonadoraTurbidity.drop(columns=['censorcodecv_id', 'qualitycodecv_id'])
+
+print(SonadoraDischarge.head())
+print(SonadoraSP.head())
+print(SonadoraTurbidity.head())
+quit()
+```
+
+```{r}
+library(tidyverse)
+
+par(mfrow=c(2,1))
+
+r_SonadoraDischarge <- (py$SonadoraDischarge)
+class(r_SonadoraDischarge)
+head(r_SonadoraDischarge)
+r_SonadoraDischarge$valuedatetime = as.POSIXct(r_SonadoraDischarge$valuedatetime, "%Y-%m-%d %H:%M:%S")
+r_SonadoraDischarge = r_SonadoraDischarge[order(r_SonadoraDischarge$valuedatetime),]
+plot(r_SonadoraDischarge$datavalue ~ as.POSIXct(r_SonadoraDischarge$valuedatetime), type="b")
+
+r_SonadoraSP <- (py$SonadoraSP)
+class(r_SonadoraSP)
+head(r_SonadoraSP)
+r_SonadoraSP$valuedatetime = as.POSIXct(r_SonadoraSP$valuedatetime, "%Y-%m-%d %H:%M:%S")
+r_SonadoraSP = r_SonadoraSP[order(r_SonadoraSP$valuedatetime),]
+plot(r_SonadoraSP$datavalue ~ as.POSIXct(r_SonadoraSP$valuedatetime), type="b")
+
+r_SonadoraTurbidity <- (py$SonadoraTurbidity)
+class(r_SonadoraTurbidity)
+head(r_SonadoraTurbidity)
+r_SonadoraTurbidity$valuedatetime = as.POSIXct(r_SonadoraTurbidity$valuedatetime, "%Y-%m-%d %H:%M:%S")
+r_SonadoraTurbidity = r_SonadoraTurbidity[order(r_SonadoraTurbidity$valuedatetime),]
+plot(r_SonadoraTurbidity$datavalue ~ as.POSIXct(r_SonadoraTurbidity$valuedatetime), type="b")
+
+```
+
+```{python}
+
+timespacing = 15 # 15 minutes between records
+
+hysdict = hysteresisMetrics(SonadoraDischarge,SonadoraSP, timespacing, timespacing, debug=False, interpall=True, discharge_time_spacing_units='minutes', response_time_spacing_units='minutes', )
+
+print(hysdict)
+
+quit()
+```
+
+```{r}
+r_hysdict <- (py$hysdict)
+class(r_hysdict)
+head(r_hysdict)
+```
 
 ```{python}
 from datetime import datetime
 import pandas as pd
 import math
 import numpy
+quit()
+```
 
+```{python}
 def interpolateHIValues(hystIndex,raisingfalling,responseanddis,interval,lastinterval,i,maxWidth,closestopposite=None):
     # Calculate river discharge response hysteresis Index value for an interval. For more details see hysteresisMetrics
     # function. This is a helper function for hysteresisMetrics.
